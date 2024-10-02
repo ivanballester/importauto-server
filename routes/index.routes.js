@@ -6,6 +6,11 @@ router.get("/", (req, res, next) => {
 });
 
 const carsRouter = require("./cars.routes");
+const authRouter = require("./auth.routes");
+const usersRouter = require("./users.routes");
+
 router.use("/", carsRouter);
+router.use("/auth", authRouter);
+router.use("/", usersRouter);
 
 module.exports = router;
