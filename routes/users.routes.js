@@ -10,7 +10,7 @@ const saltRounds = 10;
 router.get("/users", async (req, res, next) => {
   try {
     const users = await User.find();
-    res.status(200).json(users);
+    return res.status(200).json(users);
   } catch (error) {
     next(error);
   }
@@ -40,6 +40,7 @@ router.post("/users", async (req, res, next) => {
       password: hashedPassword,
       name,
     });
+    console.log("Usuario creado:", createdUser);
     return res
       .status(201)
       .json({ message: "Usuario creado exitosamente", user: createdUser });
