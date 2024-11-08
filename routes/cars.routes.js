@@ -22,4 +22,33 @@ router.get("/cars/:id", async (req, res, next) => {
   }
 });
 
+router.post("/cars", async (req, res, next) => {
+  try {
+    const newCar = await Car.create(req.body);
+    res.status(201).json(newCar);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put("/cars/:id", async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const updatedCar = await Car.findByIdAndUpdate(id, req.body, { new: true });
+    res.json(updatedCar);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/cars/:id", async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const deletedCar = await Car.findByIdAndDelete(id);
+    res.json(deletedCar);
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

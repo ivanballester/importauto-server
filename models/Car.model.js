@@ -14,33 +14,37 @@ const carSchema = new Schema(
       type: Number,
       required: [true, "Year is required."],
     },
-    km: {
-      type: String,
-      required: [true, "KM is required."],
+    kilometers: {
+      type: Number,
+      required: [true, "Mileage is required."],
     },
     price: {
       type: Number,
       required: [true, "Price is required."],
     },
-    combustion: {
+    fuelType: {
       type: String,
-      require: [true, "Combustion is required."],
+      required: [true, "Fuel type is required."],
     },
-    cv: {
+    horsepower: {
       type: Number,
-      required: [true, "CV is required."],
+      required: [true, "Horsepower is required."],
     },
     seats: {
-      type: String,
+      type: Number,
       required: [true, "Seats is required."],
     },
-    motor: {
+    engine: {
       type: String,
-      required: [true, "Motor is required."],
+      required: [true, "Engine is required."],
     },
-    type: {
+    transmission: {
       type: String,
-      required: [true, "Type is required."],
+      required: [true, "Transmission is required."],
+    },
+    imageUrls: {
+      type: [String], // Array de URLs de imágenes
+      required: [true, "Image URLs are required."],
     },
   },
   { timestamps: true }
