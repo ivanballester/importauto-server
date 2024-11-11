@@ -1,55 +1,47 @@
 require("dotenv").config();
 const express = require("express");
-const s3 = require("../config/awsConfig");
 const router = express.Router();
+const multer = require("multer");
+const s3 = require("../config/awsConfig");
+const Car = require("../models/Car.model");
 
-const allowedContentTypes = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "application/pdf",
-]; // Define los tipos de contenido permitidos
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-const generatePresignedUrl = async (req, res) => {
-  let { filenames, contentType } = req.body;
+router.post("/uploadImg", upload.array("images", 10), async (req, res) => {
+  const files = req.files;
 
-  if (!filenames || filenames.length === 0) {
-    return res.status(400).json({ error: "No filenames provided" });
-  }
-
-  if (!Array.isArray(filenames)) {
-    filenames = [filenames];
-  }
-
-  // Validamos el tipo de contenido
-  if (contentType && !allowedContentTypes.includes(contentType)) {
-    return res.status(400).json({ error: "Unsupported content type" });
+  if (!files || files.length === 0) {
+    return res.status(400).send("No se han subido archivos");
   }
 
   try {
-    const presignedUrls = await Promise.all(
-      filenames.map(async (filename) => {
-        const s3Params = {
-          Bucket: process.env.AWS_BUCKET_NAME,
-          Key: `images/${filename}`,
-          Expires: 60 * 5,
-          ContentType: contentType || "image/jpeg", // Usamos el tipo de contenido recibido o JPEG por defecto
-          ACL: "public-read",
-        };
+    // Subir cada imagen a AWS S3
+    const imageUrls = [];
+    for (const file of files) {
+      const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `images/${Date.now()}-${file.originalname}`,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      };
 
-        const uploadUrl = await s3.getSignedUrlPromise("putObject", s3Params);
-        return uploadUrl;
-      })
-    );
+      const data = await s3.upload(params).promise();
+      imageUrls.push(data.Location);
+    }
 
-    res.json({ uploadUrls: presignedUrls });
+    // Guardar las URLs en la base de datos
+    const newImage = new Car({ imageUrls });
+    await newImage.save();
+
+    // Responder con las URLs de las imágenes subidas
+    res
+      .status(200)
+      .json({ message: "Imágenes subidas correctamente", imageUrls });
   } catch (error) {
-    console.error("Error generating presigned URL:", error);
-    res.status(500).json({ error: "Error generating presigned URL" });
+    console.error("Error subiendo las imágenes a S3:", error);
+    res.status(500).send("Error subiendo las imágenes");
   }
-};
-
-// Ruta para generar las URLs prefirmadas
-router.post("/s3/generate-upload-urls", express.json(), generatePresignedUrl);
+});
 
 module.exports = router;
