@@ -7,9 +7,11 @@ router.get("/", (req, res, next) => {
 const carsRouter = require("./cars.routes");
 const usersRouter = require("./users.routes");
 const s3Router = require("./s3.routes");
+const mailRouter = require("./mail.routes");
 
 router.use("/", carsRouter);
 router.use("/", usersRouter);
 router.use("/", s3Router);
+router.use("/", mailRouter);
 
 module.exports = router;
