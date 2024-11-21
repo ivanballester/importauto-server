@@ -8,13 +8,13 @@ const router = express.Router();
 const saltRounds = 10;
 
 router.post("/signup", async (req, res, next) => {
-  const { email, password, name } = req.body;
+  const { email, password } = req.body;
 
   //Check if user provided not an empty slot
-  if (!email || !password || !name) {
+  if (!email || !password) {
     return res
       .status(400)
-      .json({ message: "Email, nombre y contraseña son requeridos." });
+      .json({ message: "Email y contraseña son requeridos." });
   }
 
   //Check if email has correct format
@@ -47,7 +47,6 @@ router.post("/signup", async (req, res, next) => {
     const createdUser = await User.create({
       email,
       password: hashedPassword,
-      name,
     });
 
     const payload = {
@@ -95,6 +94,7 @@ router.post("/login", async (req, res, next) => {
     const payload = {
       _id: foundUser._id,
       email: foundUser.email,
+      role: foundUser.role,
     };
 
     const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
@@ -103,6 +103,7 @@ router.post("/login", async (req, res, next) => {
     });
 
     res.status(200).json({ authToken });
+    console.log("Generated Token:", authToken);
   } catch (error) {
     next(error);
   }

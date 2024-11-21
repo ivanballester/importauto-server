@@ -13,10 +13,6 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Password is required."],
     },
-    name: {
-      type: String,
-      required: [true, "Name is required."],
-    },
     role: {
       type: String,
       enum: ["admin", "user"],
