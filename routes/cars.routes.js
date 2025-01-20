@@ -29,18 +29,189 @@ const deleteImageFromS3 = async (imageUrl) => {
 router.get("/cars", async (req, res, next) => {
   try {
     const cars = await Car.find();
-    res.json(cars);
+    console.log("Cars data:", cars); // Verifica que tienes datos
+    res.json(cars); // Devuelve la respuesta
   } catch (error) {
+    console.error("Error al obtener los coches:", error);
     next(error);
   }
 });
 
-router.get("/cars/:id", async (req, res, next) => {
-  const { id } = req.params;
+router.get("/cars/filters", async (req, res) => {
+  console.log("Ruta de filtros llamada");
   try {
-    const car = await Car.findById(id);
-    res.json(car);
+    const {
+      brand,
+      yearMin,
+      yearMax,
+      priceMin,
+      priceMax,
+      seatsMin,
+      seatsMax,
+      kilometersMin,
+      kilometersMax,
+      fuelType,
+      transmission,
+      engine,
+      horsepowerMin,
+      horsepowerMax,
+    } = req.query;
+    console.log("Filtros recibidos:", req.query);
+    // Crear un objeto de filtros vacío
+    let filterConditions = {};
+
+    // Filtros por marca (asegúrate de que 'brand' es un string válido)
+    if (brand) {
+      const brands = brand.split(",");
+      filterConditions.brand = { $in: brands };
+    }
+
+    // Filtro por año mínimo (asegúrate de que 'yearMin' es un número válido)
+    if (yearMin) {
+      const year = parseInt(yearMin, 10);
+      if (!isNaN(year)) {
+        filterConditions.year = { ...filterConditions.year, $gte: year };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "'yearMin' debe ser un número válido" });
+      }
+    }
+
+    // Filtro por año máximo (asegúrate de que 'yearMax' es un número válido)
+    if (yearMax) {
+      const year = parseInt(yearMax, 10);
+      if (!isNaN(year)) {
+        filterConditions.year = { ...filterConditions.year, $lte: year };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "'yearMax' debe ser un número válido" });
+      }
+    }
+    if (kilometersMin) {
+      const kilometers = parseInt(kilometersMin, 10);
+      if (!isNaN(kilometers)) {
+        filterConditions.kilometers = {
+          ...filterConditions.kilometers,
+          $gte: kilometers,
+        };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "'kilometersMin' debe ser un número válido" });
+      }
+    }
+
+    if (kilometersMax) {
+      const kilometers = parseInt(kilometersMax, 10);
+      if (!isNaN(kilometers)) {
+        filterConditions.kilometers = {
+          ...filterConditions.kilometers,
+          $lte: kilometers,
+        };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "'kilometersMax' debe ser un número válido" });
+      }
+    }
+
+    // Filtro por precio mínimo (asegúrate de que 'priceMin' es un número válido)
+    if (priceMin) {
+      const price = parseFloat(priceMin);
+      if (!isNaN(price)) {
+        filterConditions.price = { ...filterConditions.price, $gte: price };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "'priceMin' debe ser un número válido" });
+      }
+    }
+
+    // Filtro por precio máximo (asegúrate de que 'priceMax' es un número válido)
+    if (priceMax) {
+      const price = parseFloat(priceMax);
+      if (!isNaN(price)) {
+        filterConditions.price = { ...filterConditions.price, $lte: price };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "'priceMax' debe ser un número válido" });
+      }
+    }
+
+    // Filtro por número de asientos (asegúrate de que 'seats' es un número válido)
+    if (seatsMin) {
+      const seats = parseInt(seatsMin, 10);
+      if (!isNaN(seats)) {
+        filterConditions.seats = { ...filterConditions.seats, $gte: seats };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "'seatsMin' debe ser un número valido" });
+      }
+    }
+
+    if (seatsMax) {
+      const seats = parseInt(seatsMax, 10);
+      if (!isNaN(seats)) {
+        filterConditions.seats = { ...filterConditions.seats, $lte: seats };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "'seatsMax' debe ser un número valido" });
+      }
+    }
+
+    // Filtro por tipo de combustible
+    if (fuelType) {
+      filterConditions.fuelType = fuelType;
+    }
+
+    // Filtro por tipo de transmisión
+    if (transmission) {
+      filterConditions.transmission = transmission;
+    }
+
+    // Filtro por tipo de motor
+    if (engine) {
+      filterConditions.engine = engine;
+    }
+
+    // Filtro por potencia del motor (asegúrate de que 'horsepowerMin' y 'horsepowerMax' sean números validos)
+    if (horsepowerMin && horsepowerMax) {
+      const minHorsepower = parseInt(horsepowerMin, 10);
+      const maxHorsepower = parseInt(horsepowerMax, 10);
+      if (!isNaN(minHorsepower) && !isNaN(maxHorsepower)) {
+        filterConditions.horsepower = {
+          $gte: minHorsepower,
+          $lte: maxHorsepower,
+        };
+      } else {
+        return res.status(400).json({
+          error: "'horsepowerMin' y 'horsepowerMax' deben ser números",
+        });
+      }
+    }
+
+    // Realizar la consulta usando los filtros dinámicos
+    const filteredCars = await Car.find(filterConditions);
+
+    res.json(filteredCars);
   } catch (error) {
+    console.error("Error al obtener los coches:", error);
+    res.status(500).json({ error: "Error al obtener los coches" });
+  }
+});
+
+router.get("/cars/:id", async (req, res, next) => {
+  try {
+    const car = await Car.findById(req.params.id);
+    console.log("Car data:", car); // Verifica que tienes datos
+    res.json(car); // Devuelve la respuesta
+  } catch (error) {
+    console.error("Error al obtener el coche:", error);
     next(error);
   }
 });
