@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
-const mongoURI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/importauto-server";
+const mongoURI = process.env.MONGODB_URI;
 
 mongoose
   .connect(mongoURI)
